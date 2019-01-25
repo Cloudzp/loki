@@ -71,6 +71,7 @@ func NewTargetManager(
 	return tm, tm.manager.ApplyConfig(config)
 }
 
+// 修改标签
 func (tm *TargetManager) run() {
 	for targetGoups := range tm.manager.SyncCh() {
 		for jobName, groups := range targetGoups {
@@ -98,6 +99,7 @@ type syncer struct {
 	relabelConfig []*pkgrelabel.Config
 }
 
+//
 func (s *syncer) Sync(groups []*targetgroup.Group) {
 	targets := map[string]struct{}{}
 

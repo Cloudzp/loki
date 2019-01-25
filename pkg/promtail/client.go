@@ -45,6 +45,8 @@ func init() {
 type ClientConfig struct {
 	URL       flagext.URLValue
 	BatchWait time.Duration
+
+	// 向loki发送日志的大小
 	BatchSize int
 
 	ExternalLabels model.LabelSet `yaml:"external_labels,omitempty"`
@@ -113,6 +115,7 @@ func (c *Client) run() {
 				batch = map[model.Fingerprint]*logproto.Stream{}
 			}
 
+			// TODO 这里是什么意思？按照我的意思这里应该在else 中去叠加
 			batchSize += len(e.Line)
 			fp := e.labels.FastFingerprint()
 			stream, ok := batch[fp]
@@ -139,6 +142,8 @@ func (c *Client) send(batch map[model.Fingerprint]*logproto.Stream) error {
 	req := logproto.PushRequest{
 		Streams: make([]*logproto.Stream, 0, len(batch)),
 	}
+
+	// TODO  这个count是干什么的？
 	count := 0
 	for _, stream := range batch {
 		req.Streams = append(req.Streams, stream)
@@ -148,6 +153,8 @@ func (c *Client) send(batch map[model.Fingerprint]*logproto.Stream) error {
 	if err != nil {
 		return err
 	}
+
+	// 压缩body体
 	buf = snappy.Encode(nil, buf)
 	sentBytes.Add(float64(len(buf)))
 
@@ -175,6 +182,7 @@ func (c *Client) Stop() {
 }
 
 // Handle implement EntryHandler; adds a new line to the next batch; send is async.
+// 异步将日志发送到loki中去， 并且会给每行日志打上label；
 func (c *Client) Handle(ls model.LabelSet, t time.Time, s string) error {
 	if len(c.externalLabels) > 0 {
 		ls = c.externalLabels.Merge(ls)

@@ -15,11 +15,12 @@ type Promtail struct {
 
 // New makes a new Promtail.
 func New(cfg Config) (*Promtail, error) {
+	// 用来定位每个日志文件的读取位置
 	positions, err := NewPositions(util.Logger, cfg.PositionsConfig)
 	if err != nil {
 		return nil, err
 	}
-
+    // 与loki交互
 	client, err := NewClient(cfg.ClientConfig, util.Logger)
 	if err != nil {
 		return nil, err

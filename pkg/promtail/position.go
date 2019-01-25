@@ -77,6 +77,7 @@ func (p *Positions) Get(path string) int64 {
 	return p.positions[path]
 }
 
+// 定时保存文件位置的map 以yaml形式保存
 func (p *Positions) run() {
 	defer p.save()
 

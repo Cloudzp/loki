@@ -144,6 +144,8 @@ func (t *Target) run() {
 type tailer struct {
 	logger    log.Logger
 	handler   EntryHandler
+
+	// TODO 标记文件的读取未知
 	positions *Positions
 
 	path string
@@ -151,6 +153,8 @@ type tailer struct {
 }
 
 func newTailer(logger log.Logger, handler EntryHandler, positions *Positions, path string) (*tailer, error) {
+
+	// tail库： 实时读取文件内容，向linux的 tail 命令一样
 	tail, err := tail.TailFile(path, tail.Config{
 		Follow: true,
 		Location: &tail.SeekInfo{
@@ -186,15 +190,18 @@ func (t *tailer) run() {
 
 	for {
 		select {
-
+        // 在一个固定时间内如果不能获取到日志内容， 需要读取一次文件的当前行数
 		case <-positionWait.C:
+			// 返回日志文件的当前位置，行号
 			pos, err := t.tail.Tell()
 			if err != nil {
 				level.Error(t.logger).Log("msg", "error getting tail position", "error", err)
 				continue
 			}
+			// 对于每个文件目录，存在一个map 以文件目录为key，以当前位置为value，并添加了同步锁
+			// 将上面读取到的位置设置到map中
 			t.positions.Put(t.path, pos)
-
+        // 获取到一行日志
 		case line, ok := <-t.tail.Lines:
 			if !ok {
 				return

@@ -32,6 +32,8 @@ func (e EntryMiddlewareFunc) Wrap(next EntryHandler) EntryHandler {
 	return e(next)
 }
 
+
+// TODO 没看懂 。。。
 func addLabelsMiddleware(additionalLabels model.LabelSet) EntryMiddleware {
 	return EntryMiddlewareFunc(func(next EntryHandler) EntryHandler {
 		return EntryHandlerFunc(func(labels model.LabelSet, time time.Time, entry string) error {
